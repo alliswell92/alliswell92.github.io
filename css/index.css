@@ -18,3 +18,19 @@ nav a:link, nav a:visited {
   text-decoration:none;
   text-align:center;
 }
+
+p, a:link, a:visited {
+  font-size:1em;
+  color:#000;
+  text-decoration:none;
+  text-align:center;
+}
+
+#body-container {
+  display:flex;
+  flex-flow:row wrap;
+  margin-left: 20%;
+  margin-right: 20%;
+  margin-top: 5%;
+  margin-bottom: 5%;
+}

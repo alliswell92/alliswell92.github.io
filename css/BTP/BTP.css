@@ -24,7 +24,9 @@ nav a:link, nav a:visited {
   width:100%;
 }
 
-p, h1 {
+p, h1{
+  font-size:1em;
+  text-decoration:none;
 }
 
 #container-body {

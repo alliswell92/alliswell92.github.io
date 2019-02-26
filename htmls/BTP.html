@@ -20,9 +20,10 @@
     </nav>
     <br><br>
     <img src="../img/fingerprint_1.svg" width="400" height="400">
-    <h1>BTP(Biometric Template Protection)</h1>
+    <h1>Biometric Template Protection(BTP)</h1>
     <br>
     <div id="container-body" align="left">
+      <p>일단 두서없이 해야할 정보들을 작성한 후 천천히 수정, 추가할 생각입니다. css 건들기가 두렵고 귀찮아서 레이아웃도 제대로 안 만들었는데 내용 정리는 무슨 ㅠㅠ</p>
       <p>BTP(Biometric template protection)는 생체정보를 토대로 생성된 템플릿을 보호하는 기법으로 주로 지문이나 얼굴인식을 사용할 때 지문과 얼굴 이미지를 보호하기 위해 사용합니다.</p>
       <p>얼굴인식에 관해서는 잘 모르기 때문에 주로 지문인식을 가지고 얘기를 하도록 하겠습니다.</p>
       <br>
@@ -30,8 +31,40 @@
       <p>하지만 생체정보의 경우에는 한번 생체정보를 탈취 당하면 자신의 생체정보를 변경하기가 쉽지 않아 특히 보안에 신경을 써야합니다.</p>
       <p>BTP는 혹시 모를 자신의 생체정보를 탈취당할 상황을 대비하여 생체정보에 약간의 변형을 가해 생체정보를 보호하는 역할을 합니다.</p>
       <br>
-      <p>BTP는 다음과 같이 몇 가지 중요한 특성을 가지고 있습니다.</p>
-      <p>Locally Smooth, Globally Not Smooth, Renewability, Unlinkability, 시간이 좀 지나서 잘 기억이 안나네...</p>
+      <p>(invertible transformation 예시 사진 추가)</p>
+      <p>지문의 경우 해당 정보를 활용하는 방식으로 보통 지문 이미지 자체를 사용하거나 혹은 지문들의 특징점(Minutiae)를 추출하여 Minutia의 x, y, theta 정보를 활용하는 방법이 있습니다.</p>
+      <p>어떤 정보를 활용하는지와 상관없이 주된 내용은 원래의 지문을 손상시키는 개념(Many to One)이며 이 손상시킨다는 것은 Invertible하다는 것을 나타냅니다.</p>
+      <p>즉, Minutiae를 예로 들면 두 Minutia 이상의 점이 하나의 point로 이동시켜 만약 해당 정보를 탈취당해서 복호화를 시키려고 해도 해당 point의 점이 어디로 가야하는지 모르도록 하는 방법입니다.</p>
+      <p>예를 들어, y = x^2 에서 y가 4라는 것을 알아도 x가 2인지 -2인지 정확한 x의 값을 모르도록 한다는 개념입니다.</p>
+      <p>이런 변형을 가할 때 (위에서 손상, 변형이라는 말을 같이 썼는데 변형이라고 쓸게요 앞으로) locally smooth, globally not smooth 해야합니다.</p>
+      <p>locally smooth란 지문에서 minutia를 뽑을 때 늘 같은 x, y, theta가 뽑히는 것이 아니라 상황에 따라 (지문 센서 인식시의 압력이나 수분의 정도, 틀어짐에 따라) 약간의 오차가 발생할 수 있고<br>
+      그러므로 minutia를 변형시킬 때 기존의 위치에서 transformed된 point와 약간의 오차가 있는 minutia를 transformed한 point 사이에 약간의 오차만 있어야 한다는 것입니다.</p>
+      <p>하지만 이러한 locally smooth들이 모여 전체 minutiae들이 transformed된 point들의 집함을 봤을 때에는 globally not smooth 해야합니다.</p>
+      <p>이를 측정하는 가장 간단한 방법은 transform 하기 전 원래의 minutiae들과 transform을 가한 후의 minutiae들의 매칭 스코어를 비교해보는 것입니다.</p>
+      <p>해당 score가 threshold를 넘지 않아야 합니다.</p>
+      <p>또한 만약 transform된 template을 탈취당해도 (아.. 용어정리부터 해야겠다. 나부터 섞어쓰고 있네요ㅠㅠ) transform하는 방식(함수 혹은 뭐 offset들이나 랜덤 matrix)을 바꿀 경우
+      서로 매칭이 안 되어야하며(Renewability) 비슷한 성능을 낼 수 있도록 합니다.</p>
+      <p>여기서 지문인식의 성능은 보통 FAR와 FRR로 표현하는데 <br><strong>FRR</strong>의 경우 내 지문을 등록하고 내 지문을 인식했는데 실패하는 비율을 나타내며(False Positive) <br> <strong>FAR</strong>의 경우
+      내 지문을 등록한 후 다른 사람의 지문을 인식했을 때 성공하는 비율을 나타냅니다.(False Negative)<br>보통 후자의 상황이 더 심각한 경우이며 이 두 경우는 서로 영향을 줍니다.</p>
+      <p>무슨 말인가 하면 threshold를 낮춰서 대부분의 지문이 서로 매칭된다고 하는 경우 FRR이 낮아지는 반면 FAR이 많이 높아지게 되며 반대로 threshold를 엄청 높일 경우 FRR은 높아지는 반면 FAR이 낮아지게 됩니다.</p>
+      <p>당연히 들어오는 모든 지문에 대해 무조건 등록된 지문과 같다고 인식하면 내 지문을 등록하고 내 지문을 인식할 경우 실패할 경우는 없어지게 되며 낮은 FRR을 기록할 수 있습니다.
+        대신 다른 사람의 지문도 무조건 같다고 판단하기 때문에 FAR이 높아지게 되겠죠.</p>
+      <p>반대의 경우는 반대의 상황이 발생할 수 있습니다.</p>
+      <p>그래서 FMR을 토대로 판단을 하는데 백만분의 일(? 정확하지 않다 찾아보자)의 FAR을 가질 때 FRR을 나타내는 것으로 백만번의 비교 중 한번 False Negative가 발생할 때 이 때의 FRR 성능을 나타내는 것이다.
+      (백만분의 일인지는 잘 기억이 안난다 찾아볼게요)</p>
+      <p>일단 이런 BTP의 방식에는 여러가지가 있는데 저는 Non-Invertible Transform 방식 위주(Cancellable Transform)로 설명을 했었습니다. <br>대표적인 Cancelable transform의 방식에는 크게 3가지가 있는데
+      <br> Cartesian 방식, Polar 방식, Functional 방식 입니다.</p>
+      <p>개념은 세가지 경우 모두 비슷하고 (Many to one) cartesian은 우리가 아는 직교 좌표계 위에 minutiae를 찍고 직교 좌표계를 기준으로 영역들을 나눈 후 서로 섞도록 합니다. (시각자료 준비하여 첨부)</p>
+      <p>같은 방식으로 Polar의 경우에도 극좌표계에서 minutiae들을 찍고 섞는 개념입니다.</p>
+      <p>Functional의 경우 minutia마다 위치를 바꾸는 함수와 각도를 바꾸는 함수를 준비한 후 함수에 x, y, theta를 넣어 나온 값들로 minutia를 이동시키는 방법으로 함수가 주요 포인트가 됩니다.</p>
+      <p>일반적으로 성능을 봤을 때 Cartesian < Polar < Functional 순으로 성능이 좋으며 그 이유는 Boundary 에 있는 Minutia들이 아무래도 Cartesian과 Polar의 경우 Border 경계선이 존재하기 때문에 해당 부분에
+      겹쳐있는 minutia의 경우 약간의 오차에도 서로 다른 곳으로 섞여 이동될 수 있기에 인식률이 Functional에 비해 낮습니다. </p>
+      <p>여기서 또 중요한 포인트는 위의 방법들을 사용할 때 대부분의 논문에서는 Align은 고려하지 않는다고 나와있습니다. 즉, 지문의 방향이나 절대적인 위치에 따라 Minutiae의 정보가 많이 다를수밖에 없는데
+      이를 Align한 후 Transform을 해야하지만 이 Align을 하는 방법이 제법 어렵습니다.</p>
+      <p>방법이 없는것은 아니지만 대표적으로 많이 알려진 방법들의 경우 첫 번째는 지문에도 Core부분이 존재하게 되며 지문의 대략적인 모양이 있습니다. 대표적으로 많은 사람들의 지문이 Arch 모양을 이루고 있으며
+      이 Arch모양을 기준으로 Core와 Delta를 추출하여 이를 기준점으로 Align을 맞추는 방법이 있으며... 두 번째는 아 이건 써도 되는지 모르겠음 일단 보류</p>
+      <p>위의 지문의 Core를 통해 Align을 맞추는 방법의 경우 Thimble이였나 해당 오픈소스를 활용해서 시도를 했었는데 생각보다 수행시간도 오래걸리고 정확하지도 않다. (후에 Thibmle 알고리듬도 설명하도록 한다.)</p>
+      <p>이거 정리 언제 다 하냐</p>
       <p>일단 오늘은 여기까지</p>
     </div>
     </div>
